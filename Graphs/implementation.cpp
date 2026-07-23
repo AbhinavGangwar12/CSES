@@ -1,7 +1,9 @@
 #include <iostream>
+#include<algorithm>
 #include <vector>
 #include<queue>
 #include<set>
+#include <climits>
 
 using namespace std;
 
@@ -87,6 +89,41 @@ public:
     vector<vector<int>>& getMatrix() {
         return mat;
     }
+};
+
+class DSU{
+    private:
+        vector<int> parent;
+        vector<int> rank;
+    public:
+        DSU(int n){
+            parent.resize(n);
+            rank.resize(n, 0);
+            for(int i = 0; i<n ;i++){
+                parent[i] = i;
+            }
+        }
+        int UParent(int x){
+            if(parent[x] != x){
+                return parent[x] = UParent(parent[x]);
+            }
+            return parent[x];
+        }
+        void Union(int x, int y){
+            int px = UParent(x);
+            int py = UParent(y);
+            if(px == py) return;
+            if(rank[px] < rank[py]){
+                parent[px] = py;
+            }
+            else if(rank[px] > rank[py]){
+                parent[py] = px;
+            }
+            else{
+                parent[py] = px;
+                rank[px]++;
+            }
+        }
 };
 
 void dfs_list(const vector<vector<pair<int,int>>> &adj, vector<bool> &vis, int curr){
@@ -234,34 +271,107 @@ vector<int> dijkstra_s(const vector<vector<pair<int,int>>> &edges, int src){
 }
 
 
-vector<int> bellmanFord(const vector<vector<int>> &edges, int src){
-    int V = edges.size();
+vector<int> bellmanFord(const vector<vector<int>> &edges, int V, int src){
     vector<int> dist(V, INT_MAX);
     dist[src] = 0;
+
     for(int i = 1; i < V; i++){
-        for(const auto & edge: edges){
+        bool updated = false;
+        for(const auto &edge: edges){
             int u = edge[0];
             int v = edge[1];
             int w = edge[2];
 
             if(dist[u] != INT_MAX && dist[u] + w < dist[v]){
                 dist[v] = dist[u] + w;
+                updated = true;
             }
         }
+
+        if(!updated)
+            break;
     }
-    for(const auto & edge: edges){
+
+    for(const auto &edge: edges){
         int u = edge[0];
         int v = edge[1];
         int w = edge[2];
 
         if(dist[u] != INT_MAX && dist[u] + w < dist[v]){
-            cout<<"Negative cycle detected!"<<endl;
+            cout << "Negative cycle detected!" << endl;
             return {-1};
         }
     }
+
     return dist;
 }
 
+// MST 
+// prims algorithm: time complexity: O((E + V) log V), space complexity: O(V)
+int prims(const vector<vector<pair<int,int>>> &edges, int src){
+    int V = edges.size();
+    vector<bool> vis(V, false);
+    priority_queue<pair<int,int>,
+        vector<pair<int,int>>,
+        greater<pair<int,int>>> q;
+
+    q.push({0, src});
+    int res = 0;
+    int added = 0;
+
+    while(!q.empty() && added < V){
+        auto top = q.top();
+        q.pop();
+        int w = top.first;
+        int node = top.second;
+
+        if(vis[node])
+            continue;
+
+        res += w;
+        vis[node] = true;
+        added++;
+
+        for(const auto &neighbor : edges[node]){
+            int n = neighbor.first;
+            int dw = neighbor.second;
+            if(!vis[n]){
+                q.push({dw, n});
+            }
+        }
+    }
+
+    return added == V ? res : -1;
+}
+
+// kruskal's algorithm: time complexity: O(E log E), space complexity: O(V)
+int kruskal(const vector<vector<pair<int,int>>> &edges, int V){
+    vector<tuple<int,int,int>> edgeList;
+    // O(N + E)
+    for(int u = 0; u < V; u++){
+        for(const auto &neighbor : edges[u]){
+            int v = neighbor.first;
+            int w = neighbor.second;
+
+            if(u < v)edgeList.push_back({w, u ,v});
+        }
+    }
+    // O(E log E)
+    sort(edgeList.begin(), edgeList.end());
+    int res = 0;
+    DSU dsu(V);
+    for(const auto &edge : edgeList){
+        int u = get<1>(edge);
+        int v = get<2>(edge);
+        int w = get<0>(edge);
+        if(dsu.UParent(u) != dsu.UParent(v)){
+            dsu.Union(u,v);
+            res += w;
+        }
+    }
+    return res;
+
+}
 
 int main() {
 
