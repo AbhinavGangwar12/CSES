@@ -1,50 +1,71 @@
+// KOSARAJU'S ALGORITHM IMPLEMENTATION
+
 #include<iostream>
 #include<vector>
+#include<algorithm>
 
 using namespace std;
-void dfs(int node, vector<vector<int>>& adj, vector<bool>& visited){
-    visited[node] = true;
-    for(int child: adj[node]){
-        if(!visited[child]){
-            dfs(child, adj, visited);
+
+void dfs(int node, const vector<vector<int>> &adj, vector<bool> &visited, vector<int> &order){
+    visited[node]=true;
+    for(int neighbor : adj[node]){
+        if(!visited[neighbor]){
+            dfs(neighbor, adj, visited, order);
+        }
+    }
+    order.push_back(node);
+}
+
+void dfs2(int node, const vector<vector<int>> &adj, vector<bool> &visited, vector<int> &component, int comp_id){
+    visited[node]=true;
+    component[node]=comp_id;
+    for(int neighbor : adj[node]){
+        if(!visited[neighbor]){
+            dfs2(neighbor, adj, visited, component, comp_id);
         }
     }
 }
-
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     int n, m;
-    if(!(cin >> n >> m))return 0;
+    if(!(cin >> n >> m)) {
+        cerr << "Error reading input." << endl;
+        return 1;
+    }
     vector<vector<int>> adj(n);
     vector<vector<int>> rev_adj(n);
     for(int i = 0; i < m; i++){
         int u, v;
-        if(!(cin >> u >> v))return 0;
-        adj[u-1].push_back(v-1);
-        rev_adj[v-1].push_back(u-1);
+        if(!(cin >> u >> v)) {
+            cerr << "Error reading edge input." << endl;
+            return 1;
+        }
+        u--; v--;
+        adj[u].push_back(v);
+        rev_adj[v].push_back(u);
     }
     vector<bool> visited(n, false);
-    vector<int> kingdoms(n, -1);
-    int kingdom_id = 1;
+    vector<int> order;
     for(int i = 0; i < n; i++){
-        if(visited[i])continue;
-        vector<bool> v1(n, false);
-        vector<bool> v2(n, false);
-        dfs(i, adj, v1);
-        dfs(i, rev_adj, v2);
-        for(int j = 0; j < n; j++){
-            if(v1[j] && v2[j]){
-                visited[j] = true;
-                kingdoms[j] = kingdom_id;
-            }
+        if(!visited[i]){
+            dfs(i, adj, visited, order);
         }
-        kingdom_id++;
     }
-    cout<<kingdom_id-1<<"\n";
+    fill(visited.begin(), visited.end(), false);
+    reverse(order.begin(), order.end());
+    vector<int> component(n, -1);
+    int comp_id = 1;
+    for(int node : order){
+        if(!visited[node]){
+            dfs2(node, rev_adj, visited, component, comp_id);
+            comp_id++;
+        }
+    }
+    cout<<comp_id-1<<endl;
     for(int i = 0; i < n; i++){
-        cout<<kingdoms[i]<<" ";
+        cout << component[i] << " ";
     }
-    cout<<"\n";
+    cout<<endl;
     return 0;
 }
