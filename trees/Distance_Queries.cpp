@@ -3,24 +3,26 @@
 #include<algorithm>
 
 using namespace std;
-const int MAXN = 2e5;
+const int MAXN = 200005; // Slightly larger than 2e5 for 1-based indexing
 const int LOGN = 19;
 vector<int> adj[MAXN];
 int up[MAXN][LOGN], depth[MAXN];
 
-void dfs(int u, int p){
+// Added a depth parameter 'd' to properly track levels
+void dfs(int u, int p, int d = 0){
     up[u][0] = p;
-    depth[u] = depth[p] + 1;
+    depth[u] = d;
     for(int i = 1; i < LOGN; i++){
         up[u][i] = up[up[u][i-1]][i-1];
     }
     for(int v : adj[u]){
         if(v != p){
-            dfs(v,u);
+            dfs(v, u, d + 1);
         }
     }
 }
 
+// Function to purely find the Lowest Common Ancestor (LCA)
 int get_lca(int a, int b) {
     if(depth[a] < depth[b]){
         swap(a,b);
@@ -43,6 +45,7 @@ int get_lca(int a, int b) {
     return up[a][0];
 }
 
+// Distance formula using LCA
 int dist(int a, int b){
     int lca = get_lca(a, b);
     return depth[a] + depth[b] - 2 * depth[lca];
@@ -51,22 +54,23 @@ int dist(int a, int b){
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+    
     int n, m;
-    if(!(cin >> n >> m))return 0;
+    if(!(cin >> n >> m)) return 0;
+    
     for(int i = 1; i < n; i++){
         int u, v;
         cin >> u >> v;
         adj[u].push_back(v);
+        adj[v].push_back(u); // Fix: Tree edges are undirected
     }
+    
     dfs(1, 1);
-    // for(int i = 1; i <= n; i++){
-    //     cout<<depth[i]<<" ";
-    // }
-    cout<<endl;
+    
     while(m--){
         int a, b;
         cin >> a >> b;
-        cout<<dist(a, b)<<"\n";
+        cout << dist(a, b) << "\n";
     }
     return 0;
 }
