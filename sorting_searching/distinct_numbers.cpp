@@ -1,17 +1,25 @@
-#include<iostream>
-#include<unordered_set>
-#include<set>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
-#define ll long long 
-int main(){
-    ll turns;
-    cin>>turns;
-    set<ll> s;
-    for(int i=0;i<turns;i++){
-        ll temp = 0;
-        cin>>temp;
-        s.insert(temp);
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    vector<int> nums(n);
+    for (int i = 0; i < n; i++) {
+        cin >> nums[i];
     }
-    cout<<s.size()<<endl;
+
+    sort(nums.begin(), nums.end());
+    
+    nums.erase(unique(nums.begin(), nums.end()), nums.end());
+
+    cout << nums.size() << "\n";
     return 0;
 }

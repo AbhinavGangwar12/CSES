@@ -1,31 +1,45 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
 using namespace std;
 
-const int s = 2e5+1;
-int n,m,k,desire[s],available[s];
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
 
-int main(){
-    cin >> n >> m >>k;
-    for(int i = 0;i<n;i++){
-        cin >> desire[i];
+    int n, m, k;
+    if (!(cin >> n >> m >> k)) return 0;
+
+    vector<int> app(n);
+    vector<int> apt(m);
+
+    for (int i = 0; i < n; i++) {
+        cin >> app[i];
     }
-    for(int i = 0;i<m;i++){
-        cin >> available[i];
+    for (int i = 0; i < m; i++) {
+        cin >> apt[i];
     }
-    sort(available,available+m);
-    sort(desire,desire+n);
-    int count = 0;
-    // this is uses merge sort's merge function approach
-    int i = 0,j = 0;
-    while(i<n){
-        if(j<m && desire[i]-k > available[j])j++;
-        else if(j<m && (desire[i]-k <= available[j] && desire[i]+k >= available[j])){
-            count++;
+
+    sort(app.begin(), app.end());
+    sort(apt.begin(), apt.end());
+
+    int i = 0, j = 0, count = 0;
+
+    while (i < n && j < m) {
+        if (abs(app[i] - apt[j]) <= k) {
             i++;
             j++;
+            count++;
         }
-        else i++;
+        else if (apt[j] < app[i] - k) {
+            j++;
+        }
+        else {
+            i++;
+        }
     }
-    cout<<count<<endl;
+
+    cout << count << "\n";
     return 0;
 }
